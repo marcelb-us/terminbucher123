@@ -4,18 +4,28 @@ const fs = require('fs');
 const URL = 'https://www.etermin.net/psychotherapie-oberkassel/serviceid/534814';
 // Nur Termine VOR diesem Datum melden (Format JJJJ-MM-TT)
 const CUTOFF = process.env.CUTOFF || '2028-12-31';
-const NTFY_TOPIC = process.env.NTFY_TOPIC;
+const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
 async function notify(title, message) {
-  if (!NTFY_TOPIC) {
-    console.log('Kein NTFY_TOPIC gesetzt. Nachricht waere:', message);
+  if (!TELEGRAM_TOKEN || !TELEGRAM_CHAT_ID) {
+    console.log('Telegram-Secrets fehlen. Nachricht waere:', message);
     return;
   }
-  await fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
-    method: 'POST',
-    headers: { Title: title, Priority: 'urgent', Tags: 'calendar', Click: URL },
-    body: message,
-  });
+  const res = await fetch(
+    `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHAT_ID,
+        text: `🔔 ${title}\n\n${message}\n\n${URL}`,
+      }),
+    }
+  );
+  if (!res.ok) {
+    console.error('Telegram-Fehler:', res.status, await res.text());
+  }
 }
 
 // Sucht rekursiv alle Datumsangaben (JJJJ-MM-TT) in einer JSON-Antwort
