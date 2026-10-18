@@ -1,0 +1,36 @@
+name: Termin-Check
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'   # alle 15 Minuten
+  workflow_dispatch:          # erlaubt manuelles Starten
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Abhängigkeiten installieren
+        run: |
+          npm install
+          npx playwright install --with-deps chromium
+
+      - name: Termin prüfen
+        run: node check.js
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          CUTOFF: '2028-12-31'
+
+      - name: Diagnose-Dateien speichern
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug
+          path: debug/
+          retention-days: 3
