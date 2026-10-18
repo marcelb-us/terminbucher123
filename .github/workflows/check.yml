@@ -24,7 +24,8 @@ jobs:
       - name: Termin prüfen
         run: node check.js
         env:
-          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           CUTOFF: '2028-12-31'
 
       - name: Diagnose-Dateien speichern
