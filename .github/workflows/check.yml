@@ -2,8 +2,15 @@ name: Termin-Check
 
 on:
   schedule:
-    - cron: '*/15 * * * *'   # alle 15 Minuten
-  workflow_dispatch:          # erlaubt manuelles Starten
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    inputs:
+      test_notify:
+        description: 'Nur Telegram-Testnachricht senden (1 = ja)'
+        default: '0'
+      url:
+        description: 'Optional: andere eTermin-Seite zum Testen'
+        default: ''
 
 jobs:
   check:
@@ -26,7 +33,9 @@ jobs:
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          CUTOFF: '2035-01-01'
+          CUTOFF: '2099-12-31'
+          TEST_NOTIFY: ${{ github.event.inputs.test_notify }}
+          URL_OVERRIDE: ${{ github.event.inputs.url }}
 
       - name: Diagnose-Dateien speichern
         if: always()
